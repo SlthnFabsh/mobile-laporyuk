@@ -4,12 +4,16 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo/ui": "~56.0.13",
+    "@expo/vector-icons": "^15.0.2",
+    "@react-native-async-storage/async-storage": "^1.23.1",
+    "axios": "^1.7.7",
     "expo": "~56.0.4",
     "expo-constants": "~56.0.15",
     "expo-device": "~56.0.4",
     "expo-font": "~56.0.5",
     "expo-glass-effect": "~56.0.4",
     "expo-image": "~56.0.9",
+    "expo-image-picker": "~15.0.7",
     "expo-linking": "~56.0.11",
     "expo-router": "~56.2.6",
     "expo-splash-screen": "~56.0.10",
@@ -21,9 +25,11 @@
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
     "react-native-gesture-handler": "~2.31.1",
+    "react-native-heroicons": "^2.2.0",
     "react-native-reanimated": "4.3.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
+    "react-native-svg": "15.15.4",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.8.3"
   },
@@ -32,10 +38,11 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
+    "start": "node ./scripts/update-ip.js && expo start",
+    "update-ip": "node ./scripts/update-ip.js",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "node ./scripts/update-ip.js && expo start --android",
+    "ios": "node ./scripts/update-ip.js && expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },
