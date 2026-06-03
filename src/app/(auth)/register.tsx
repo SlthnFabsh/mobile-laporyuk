@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   ScrollView,
   SafeAreaView,
@@ -141,14 +142,14 @@ export default function RegisterScreen() {
           <View style={styles.header}>
             <View style={styles.logo}>
               <View style={styles.logoCircle}>
-                <View style={styles.logoText}>📢</View>
+                <Text style={styles.logoText}>📢</Text>
               </View>
             </View>
             <View style={styles.titleText}>
-              <View style={styles.titleLine}>Daftar Akun Baru</View>
-              <View style={styles.subtitle}>
+              <Text style={styles.titleLine}>Daftar Akun Baru</Text>
+              <Text style={styles.subtitle}>
                 Bergabunglah dengan kami dan mulai laporkan masalah di sekitarmu
-              </View>
+              </Text>
             </View>
           </View>
 
@@ -216,7 +217,7 @@ export default function RegisterScreen() {
             />
 
             <View style={styles.loginLink}>
-              <View style={styles.loginText}>Sudah punya akun?</View>
+              <Text style={styles.loginText}>Sudah punya akun?</Text>
               <Button
                 onPress={handleNavigateToLogin}
                 title="Masuk di sini"

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   ScrollView,
   SafeAreaView,
@@ -88,26 +89,26 @@ export default function LoginScreen() {
           <View style={styles.header}>
             <View style={styles.logo}>
               <View style={styles.logoCircle}>
-                <View style={styles.logoText}>📢</View>
+                <Text style={styles.logoText}>📢</Text>
               </View>
             </View>
             <View style={styles.title}>
               <View style={styles.titleText}>
                 <View style={styles.titleLine1}>
-                  <View style={styles.wordSuara}>Suara</View>
+                  <Text style={styles.wordSuara}>Suara</Text>
                 </View>
                 <View style={styles.titleLine2}>
-                  <View style={styles.wordRakyat}>Rakyat,</View>
+                  <Text style={styles.wordRakyat}>Rakyat,</Text>
                 </View>
                 <View style={styles.titleLine3}>
-                  <View style={styles.wordAksi}>Aksi</View>
+                  <Text style={styles.wordAksi}>Aksi</Text>
                 </View>
-                <View style={styles.titleLine4}>Nyata.</View>
+                <Text style={styles.titleLine4}>Nyata.</Text>
               </View>
             </View>
-            <View style={styles.subtitle}>
+            <Text style={styles.subtitle}>
               Masuk dan lanjutkan perjuanganmu. Setiap laporan adalah satu langkah nyata menuju perubahan yang lebih baik.
-            </View>
+            </Text>
           </View>
 
           <View style={styles.formContainer}>
@@ -143,7 +144,7 @@ export default function LoginScreen() {
             />
 
             <View style={styles.registerLink}>
-              <View style={styles.registerText}>Belum punya akun?</View>
+              <Text style={styles.registerText}> Belum punya akun?</Text>
               <Button
                 onPress={handleNavigateToRegister}
                 title="Daftar di sini"
