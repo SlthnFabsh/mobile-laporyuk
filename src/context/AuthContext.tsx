@@ -40,7 +40,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userData = await AsyncStorage.getItem('user');
 
         if (token && userData) {
-          setUser(JSON.parse(userData));
+          try {
+            setUser(JSON.parse(userData));
+          } catch (parseError) {
+            console.error('Error parsing user data:', parseError);
+            // Hapus data yang corrupt
+            await AsyncStorage.removeItem('token');
+            await AsyncStorage.removeItem('user');
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -55,10 +62,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       const response = await api.post('/auth/login', { email, password });
+      console.log('Login response:', response.data);
+      
       const { token, user: userData } = response.data;
 
       if (!token || !userData) {
-        return { success: false, message: 'Data tidak lengkap' };
+        return { success: false, message: 'Data tidak lengkap dari server' };
       }
 
       // Simpan token dan user data
@@ -69,6 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true };
     } catch (error: any) {
       console.error('Login error:', error);
+      console.error('Login error response:', error.response?.data);
       const errorMessage =
         error.response?.data?.message || error.message || 'Login gagal';
       return { success: false, message: errorMessage };

@@ -9,6 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { getImageUrl } from '@/config/api';
 
 interface LaporanItemProps {
   id: number;
@@ -62,7 +63,7 @@ export const LaporanItem: React.FC<LaporanItemProps> = ({
       <View style={styles.row}>
         {image && (
           <Image
-            source={{ uri: image }}
+            source={{ uri: getImageUrl(image) }}
             style={styles.image}
             defaultSource={require('@/assets/images/placeholder.png')}
           />

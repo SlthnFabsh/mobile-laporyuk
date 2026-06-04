@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import api from '@/config/api';
+import api, { getImageUrl } from '@/config/api';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface Laporan {
@@ -77,7 +77,7 @@ const LaporanCard = ({ item, onPress }: { item: Laporan; onPress: () => void }) 
       >
         <View style={cardStyles.row}>
           {item.image ? (
-            <Image source={{ uri: item.image }} style={cardStyles.thumb} />
+            <Image source={{ uri: getImageUrl(item.image) }} style={cardStyles.thumb} />
           ) : (
             <View style={cardStyles.thumbPlaceholder}>
               <Ionicons name="document-text-outline" size={28} color="#93C5FD" />
@@ -178,9 +178,17 @@ export default function HomeScreen() {
   const fetchLaporans = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/laporan/user');
-      // Normalisasi: bisa berupa array langsung, atau objek { data: [...] }, { laporan: [...] }, dll.
+      const response = await api.get('/laporan/user/my');
       const raw = response.data;
+      
+      // Check for error response
+      if (raw && raw.error) {
+        console.error('Error from backend:', raw.error);
+        setLaporans([]);
+        return;
+      }
+      
+      // Normalisasi: bisa berupa array langsung, atau objek { data: [...] }, { laporan: [...] }, dll.
       let result: Laporan[] = [];
       if (Array.isArray(raw)) {
         result = raw;

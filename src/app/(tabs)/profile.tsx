@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Text,
   Alert,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
@@ -104,7 +105,21 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined'
+        ? window.confirm('Apakah Anda yakin ingin keluar dari akun ini?')
+        : false;
+
+      if (!confirmed) {
+        return;
+      }
+
+      await logout();
+      router.replace('/(auth)/login');
+      return;
+    }
+
     Alert.alert(
       'Konfirmasi Logout',
       'Apakah Anda yakin ingin keluar dari akun ini?',

@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import api from '@/config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface Category {
@@ -213,7 +214,22 @@ export default function CreateLaporanScreen() {
     const newErrors: Record<string, string> = {};
     if (!formData.title.trim()) newErrors.title = 'Judul wajib diisi';
     if (!formData.description.trim()) newErrors.description = 'Deskripsi wajib diisi';
-    // ✅ Foto tidak wajib
+    
+    if (formData.tanggal_kejadian.trim()) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(formData.tanggal_kejadian.trim())) {
+        newErrors.tanggal_kejadian = 'Format tanggal harus YYYY-MM-DD (contoh: 2026-06-03)';
+      } else {
+        const parts = formData.tanggal_kejadian.split('-');
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const day = parseInt(parts[2], 10);
+        if (month < 1 || month > 12 || day < 1 || day > 31) {
+          newErrors.tanggal_kejadian = 'Tanggal tidak valid';
+        }
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -223,6 +239,9 @@ export default function CreateLaporanScreen() {
     setLoading(true);
 
     try {
+      // ✅ Ambil token untuk Authorization header
+      const token = await AsyncStorage.getItem('token');
+
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
@@ -231,22 +250,70 @@ export default function CreateLaporanScreen() {
       if (formData.instansi_tujuan) formDataToSend.append('instansi_tujuan', formData.instansi_tujuan);
       if (formData.category_id) formDataToSend.append('category_id', formData.category_id);
 
-      selectedImages.forEach((image) => {
-        formDataToSend.append('files', {
-          uri: image.uri,
-          type: 'image/jpeg',
-          name: image.name,
-        } as any);
+      console.log('📸 Selected images:', selectedImages.length);
+      for (let index = 0; index < selectedImages.length; index++) {
+        const image = selectedImages[index];
+        const mimeType = image.type || 'image/jpeg';
+        const fileName = image.name || `photo_${index}.jpg`;
+
+        console.log(`📎 Image ${index}: uri=${image.uri?.substring(0, 60)}, type=${mimeType}, name=${fileName}`);
+
+        if (Platform.OS === 'web') {
+          try {
+            // Konversi URI (blob:http://... atau data:...) menjadi File object agar bisa diparse oleh native FormData di browser
+            const response = await fetch(image.uri);
+            const blob = await response.blob();
+            const file = new File([blob], fileName, { type: mimeType });
+            formDataToSend.append('files', file);
+            console.log(`✅ Web image ${index} converted to File object and appended.`);
+          } catch (e) {
+            console.error(`❌ Error converting web image ${index} to File:`, e);
+            // Fallback ke model native (bisa error di browser tapi setidaknya dicoba)
+            formDataToSend.append('files', {
+              uri: image.uri,
+              type: mimeType,
+              name: fileName,
+            } as any);
+          }
+        } else {
+          // ✅ Format khusus React Native untuk upload file via fetch/XHR pada iOS/Android
+          formDataToSend.append('files', {
+            uri: image.uri,
+            type: mimeType,
+            name: fileName,
+          } as any);
+        }
+      }
+
+      // ✅ KUNCI: Gunakan native fetch() bukan Axios untuk upload file.
+      // Axios di React Native tidak bisa serialize file URI {uri,type,name} ke multipart body.
+      // Native fetch() di React Native sudah support format ini secara native.
+      const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+      console.log('📤 Sending laporan via fetch to:', `${apiBaseUrl}/laporan`);
+
+      const response = await fetch(`${apiBaseUrl}/laporan`, {
+        method: 'POST',
+        headers: {
+          // ✅ JANGAN set Content-Type secara manual!
+          // fetch otomatis set 'multipart/form-data; boundary=...' saat body adalah FormData.
+          // Jika di-set manual tanpa boundary, backend (multer) akan error: "Boundary not found"
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formDataToSend,
       });
 
-      await api.post('/laporan', formDataToSend, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const responseData = await response.json();
+      console.log('📥 Response status:', response.status, 'data:', responseData);
 
+      if (!response.ok) {
+        throw new Error(responseData?.error || `HTTP error ${response.status}`);
+      }
+
+      console.log('✅ Laporan created:', responseData);
       setShowSuccess(true);
     } catch (error: any) {
-      console.error('Error creating laporan:', error);
-      const errorMessage = error.response?.data?.error || 'Gagal membuat laporan';
+      console.error('❌ Error creating laporan:', error);
+      const errorMessage = error.message || 'Gagal membuat laporan';
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
@@ -345,7 +412,7 @@ export default function CreateLaporanScreen() {
 
             <View style={styles.fieldWrap}>
               <Text style={styles.label}>Tanggal Kejadian <Text style={styles.optional}>(Opsional)</Text></Text>
-              <View style={styles.inputBox}>
+              <View style={[styles.inputBox, errors.tanggal_kejadian ? styles.inputBoxError : null]}>
                 <Ionicons name="calendar-outline" size={18} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
@@ -355,6 +422,7 @@ export default function CreateLaporanScreen() {
                   onChangeText={(t) => handleChange('tanggal_kejadian', t)}
                 />
               </View>
+              {errors.tanggal_kejadian && <Text style={styles.errorText}>{errors.tanggal_kejadian}</Text>}
             </View>
 
             <View style={styles.fieldWrap}>

@@ -14,7 +14,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { useAlert } from '@/hooks/useAlert';
-import api from '@/config/api';
+import api, { getImageUrl } from '@/config/api';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -150,7 +150,22 @@ export default function LaporanDetailScreen() {
   }
 
   const isOwnLaporan = user?.id === laporan.user_id;
-  const images = laporan.images ? JSON.parse(laporan.images as any) : [laporan.image];
+  
+  // Handle both array and string formats for images
+  let images: string[] = [];
+  if (laporan.images) {
+    if (Array.isArray(laporan.images)) {
+      images = laporan.images;
+    } else {
+      try {
+        images = JSON.parse(laporan.images as any);
+      } catch (e) {
+        images = [laporan.image].filter(Boolean);
+      }
+    }
+  } else if (laporan.image) {
+    images = [laporan.image];
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -174,7 +189,7 @@ export default function LaporanDetailScreen() {
               keyExtractor={(_, index) => index.toString()}
               renderItem={({ item }) => (
                 <Image
-                  source={{ uri: item }}
+                  source={{ uri: getImageUrl(item) }}
                   style={styles.image}
                   defaultSource={require('@/assets/images/placeholder.png')}
                 />
