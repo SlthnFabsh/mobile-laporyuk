@@ -13,7 +13,6 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-// ── Info Row ─────────────────────────────────────────────────────────
 const InfoRow = ({
   icon,
   label,
@@ -100,7 +99,6 @@ const menuStyles = StyleSheet.create({
   labelDanger: { color: '#EF4444' },
 });
 
-// ── Main Screen ────────────────────────────────────────────────────────
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();

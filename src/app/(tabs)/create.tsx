@@ -177,7 +177,6 @@ export default function CreateLaporanScreen() {
     fetchData();
   }, [user, router]);
 
-  // Hitung progress form
   const calcProgress = () => {
     const fields = [
       formData.title.trim(),
@@ -239,7 +238,6 @@ export default function CreateLaporanScreen() {
     setLoading(true);
 
     try {
-      // ✅ Ambil token untuk Authorization header
       const token = await AsyncStorage.getItem('token');
 
       const formDataToSend = new FormData();
@@ -260,7 +258,6 @@ export default function CreateLaporanScreen() {
 
         if (Platform.OS === 'web') {
           try {
-            // Konversi URI (blob:http://... atau data:...) menjadi File object agar bisa diparse oleh native FormData di browser
             const response = await fetch(image.uri);
             const blob = await response.blob();
             const file = new File([blob], fileName, { type: mimeType });
@@ -268,7 +265,6 @@ export default function CreateLaporanScreen() {
             console.log(`✅ Web image ${index} converted to File object and appended.`);
           } catch (e) {
             console.error(`❌ Error converting web image ${index} to File:`, e);
-            // Fallback ke model native (bisa error di browser tapi setidaknya dicoba)
             formDataToSend.append('files', {
               uri: image.uri,
               type: mimeType,
@@ -276,7 +272,6 @@ export default function CreateLaporanScreen() {
             } as any);
           }
         } else {
-          // ✅ Format khusus React Native untuk upload file via fetch/XHR pada iOS/Android
           formDataToSend.append('files', {
             uri: image.uri,
             type: mimeType,
@@ -285,18 +280,12 @@ export default function CreateLaporanScreen() {
         }
       }
 
-      // ✅ KUNCI: Gunakan native fetch() bukan Axios untuk upload file.
-      // Axios di React Native tidak bisa serialize file URI {uri,type,name} ke multipart body.
-      // Native fetch() di React Native sudah support format ini secara native.
       const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
       console.log('📤 Sending laporan via fetch to:', `${apiBaseUrl}/laporan`);
 
       const response = await fetch(`${apiBaseUrl}/laporan`, {
         method: 'POST',
         headers: {
-          // ✅ JANGAN set Content-Type secara manual!
-          // fetch otomatis set 'multipart/form-data; boundary=...' saat body adalah FormData.
-          // Jika di-set manual tanpa boundary, backend (multer) akan error: "Boundary not found"
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: formDataToSend,

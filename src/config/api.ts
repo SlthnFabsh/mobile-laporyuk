@@ -5,14 +5,8 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/a
 
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  // Tidak set default Content-Type di sini agar FormData bisa auto-detect
 });
 
-/**
- * Helper: deteksi apakah data adalah FormData.
- * Di React Native, `instanceof FormData` bisa gagal karena RN punya FormData sendiri.
- * Cek via constructor name sebagai fallback yang lebih aman.
- */
 function isFormData(data: any): boolean {
   if (!data) return false;
   if (typeof FormData !== 'undefined' && data instanceof FormData) return true;
@@ -23,7 +17,6 @@ function isFormData(data: any): boolean {
   return false;
 }
 
-// Request interceptor untuk menambahkan token
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -33,9 +26,6 @@ api.interceptors.request.use(
       }
 
       if (isFormData(config.data)) {
-        // ✅ Untuk FormData (multipart): hapus Content-Type agar Axios/RN
-        // bisa auto-set dengan boundary yang benar.
-        // Harus hapus dari semua level agar tidak ada yang override.
         delete config.headers['Content-Type'];
         delete (config.headers as any)['content-type'];
         if (config.headers.common) {
@@ -45,7 +35,6 @@ api.interceptors.request.use(
           delete (config.headers.post as any)['Content-Type'];
         }
       } else {
-        // ✅ Untuk request JSON biasa
         config.headers['Content-Type'] = 'application/json';
       }
     } catch (error) {

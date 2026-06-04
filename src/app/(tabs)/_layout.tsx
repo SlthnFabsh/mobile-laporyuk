@@ -7,7 +7,6 @@ const ACTIVE_COLOR = '#3B82F6';
 const INACTIVE_COLOR = '#9CA3AF';
 const BG_COLOR = '#FFFFFF';
 
-// ── Custom Tab Bar Icon ─────────────────────────────────────────────
 function TabIcon({
   name,
   focused,
